@@ -1,0 +1,487 @@
+@import './base.css';
+
+/* === Reset básico y Variables Modernas (Estilo "Océano Profundo") === */
+:root {
+  /* Tipografía "Moderna / Clara" */
+  --font-heading: 'Montserrat', 'Verdana', sans-serif;
+  --font-body: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+
+  /* Paleta de colores "Océano / Bioluminiscente" */
+  --bg-main-start: #021024; /* Azul medianoche */
+  --bg-main-end: #05263a; /* Azul verdoso profundo */
+  --bg-card: #0c2d48; /* Azul pizarra oscuro */
+  --bg-footer: #021024; /* Azul medianoche (sólido) */
+
+  --text-light: #e0fbfc; /* Cian muy claro (casi blanco) */
+  --text-mid: #9ccddc; /* Cian-grisáceo */
+  --text-dark: #5b8e9f; /* Cian-grisáceo oscuro */
+
+  --accent-primary: #ffc300; /* Amarillo dorado (Bioluminiscencia) */
+  --accent-secondary: #29b6f6; /* Azul cian brillante */
+  --accent-tertiary: #ff6b6b; /* Rojo coral (para errores) */
+  --accent-primary-rgb: 255, 195, 0;
+
+  /* Estilos de Sombra (Modo oscuro) */
+  --shadow-glow: 0 0 15px rgba(var(--accent-primary-rgb), 0.3);
+  --shadow-dark: 0 5px 15px rgba(0, 0, 0, 0.3);
+  --border-color: rgba(156, 205, 220, 0.3); /* Borde cian sutil */
+  --border-radius: 12px; /* Ligeramente más redondeado */
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background: linear-gradient(
+      135deg,
+      var(--bg-main-start),
+      var(--bg-main-end)
+    )
+    fixed;
+  color: var(--text-mid);
+  line-height: 1.6;
+  text-align: center;
+  transition: background 0.3s;
+  overflow-x: hidden;
+}
+
+/* === Encabezado === */
+header {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  animation: fadeInDown 1s ease forwards;
+}
+
+header img {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.4); /* Resplandor amarillo */
+  border: 3px solid var(--accent-primary); /* Borde dorado/amarillo */
+}
+
+h1 {
+  font-family: var(--font-heading);
+  font-size: 3.2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  /* Gradiente de acento (Amarillo a Cian) */
+  background: linear-gradient(
+    90deg,
+    var(--accent-primary),
+    var(--accent-secondary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fadeInUp 1s 0.5s ease forwards;
+}
+
+/* === Menú de navegación === */
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  /* Píldora oscura semi-transparente */
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem;
+  border-radius: 50px;
+  box-shadow: var(--shadow-dark);
+}
+
+nav a {
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--text-mid);
+  position: relative;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+}
+
+/* Eliminamos el subrayado del tema anterior */
+nav a::after {
+  content: '';
+  display: none;
+}
+
+nav a:hover {
+  color: var(--bg-main-start); /* Texto oscuro */
+  background: var(--accent-primary); /* Fondo amarillo */
+  transform: scale(1.05);
+  box-shadow: var(--shadow-glow);
+}
+
+/* === Mensajes de alerta === */
+#messages {
+  width: 90%;
+  max-width: 650px;
+  margin: 0 auto 2rem;
+  padding: 1.25rem 1.75rem;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  text-align: left;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-dark);
+}
+
+#messages.success {
+  background: rgba(46, 204, 113, 0.1); /* Fondo verde sutil */
+  color: #2ecc71; /* Verde brillante */
+  border-left: 5px solid #2ecc71;
+}
+
+#messages.error {
+  background: rgba(255, 107, 107, 0.1); /* Fondo coral sutil */
+  color: var(--accent-tertiary);
+  border-left: 5px solid var(--accent-tertiary);
+}
+
+/* === Cards de libros (Estilo Sólido Oscuro) === */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-dark);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  text-align: left;
+  width: 100%;
+  max-width: 300px;
+  transition: transform 0.3s ease, box-shadow 0.4s ease,
+    border-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: none;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  background: var(--bg-card);
+  border-color: var(--accent-secondary); /* Borde cian en hover */
+}
+
+.card h3 {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  color: var(--accent-secondary); /* Título en Cian */
+  margin-bottom: 0.75rem;
+}
+
+.card h4 {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  color: var(--text-light); /* Texto claro */
+  margin: 0.4rem 0;
+  transition: color 0.3s;
+  font-weight: 600;
+}
+
+.card h4:last-of-type {
+  color: var(--accent-primary); /* Precio en Amarillo */
+  font-weight: 700;
+  margin-top: 1rem;
+  font-size: 1.2rem;
+}
+
+.card p {
+  margin: 0.25rem 0;
+  color: var(--text-mid);
+}
+
+.card small {
+  color: var(--text-dark);
+  font-size: 0.9rem;
+  font-style: normal; /* Quitamos itálica */
+}
+
+/* === Botones de iconos === */
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.icon-button {
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  padding: 0.6rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.icon-button:hover {
+  transform: scale(1.1);
+  background: var(--accent-secondary); /* Fondo cian */
+  box-shadow: 0 0 15px rgba(41, 182, 246, 0.4);
+  border-color: var(--accent-secondary);
+}
+
+.icon-button .material-icons {
+  font-size: 22px;
+  color: var(--text-mid);
+  transition: color 0.3s ease;
+}
+
+/* Colores de icono Bioluminiscentes */
+.icon-button[data-action='add-to-cart'] .material-icons {
+  color: #2ecc71;
+} /* Verde */
+.icon-button[data-action='edit'] .material-icons {
+  color: var(--accent-primary);
+} /* Amarillo */
+.icon-button[data-action='delete'] .material-icons {
+  color: var(--accent-tertiary);
+} /* Coral */
+
+/* En hover, el icono se vuelve oscuro */
+.icon-button:hover .material-icons {
+  color: var(--bg-card);
+}
+
+/* === Secciones principales === */
+main {
+  width: 90%;
+  max-width: 1300px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Secciones con fondo sólido oscuro */
+#list,
+#remove,
+#form,
+#about {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 2.5rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 2.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: var(--shadow-dark);
+  text-align: left;
+}
+
+#list:hover,
+#remove:hover,
+#form:hover,
+#about:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background: var(--bg-card);
+}
+
+/* === Grid de cards === */
+#list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  justify-items: center;
+  text-align: center;
+}
+
+/* === Formulario === */
+form div {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-mid);
+  font-size: 0.9rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+input[type='text'],
+input[type='number'],
+select,
+textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  transition: border 0.3s, box-shadow 0.3s;
+  background: #021a30; /* Azul aún más oscuro */
+  color: var(--text-light);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+input[type='text']:focus,
+input[type='number']:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary); /* Foco amarillo */
+  box-shadow: var(--shadow-glow);
+}
+
+/* Estilo moderno para radios */
+input[type='radio'] {
+  accent-color: var(--accent-primary); /* Amarillo */
+  margin-right: 0.5rem;
+  transform: scale(1.2);
+}
+
+form div input[type='radio'] + label {
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: 500;
+  color: var(--text-mid);
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+/* Botones */
+button {
+  padding: 0.9rem 2.2rem;
+  border: 2px solid transparent;
+  border-radius: var(--border-radius);
+  font-weight: 700;
+  cursor: pointer;
+  margin: 0.5rem 0.25rem;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: var(--font-body);
+}
+
+button:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-dark);
+}
+
+/* Botón primario */
+button[type='submit'],
+button#add {
+  background: var(--accent-primary); /* Fondo amarillo */
+  color: var(--bg-main-start); /* Texto azul oscuro */
+  border-color: var(--accent-primary);
+}
+
+button[type='submit']:hover,
+button#add:hover {
+  background: #ffdb58; /* Amarillo más claro */
+  border-color: #ffdb58;
+  box-shadow: var(--shadow-glow);
+}
+
+/* Botón secundario (Reset) - Estilo "Ghost" */
+button#reset {
+  background: transparent;
+  color: var(--text-mid);
+  border: 2px solid var(--border-color);
+}
+
+button#reset:hover {
+  background: var(--text-mid);
+  color: var(--bg-main-start);
+  border-color: var(--text-mid);
+}
+
+/* === Pie de página === */
+footer {
+  margin-top: 3rem;
+  padding: 2.5rem 0;
+  background: var(--bg-footer);
+  font-size: 0.9rem;
+  color: var(--text-mid); /* Texto de tono medio */
+  border-top: 3px solid var(--accent-primary); /* Borde superior amarillo */
+}
+
+/* === Animaciones simples (Sin cambios) === */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* === Responsividad (Sin cambios significativos) === */
+@media (max-width: 1024px) {
+  h1 {
+    font-size: 2.8rem;
+  }
+}
+
+@media (max-width: 600px) {
+  body {
+    text-align: left;
+  }
+
+  main {
+    width: 95%;
+  }
+
+  nav ul {
+    gap: 0.5rem;
+    padding: 1rem;
+    flex-wrap: wrap;
+  }
+
+  nav a {
+    padding: 0.5rem 1rem;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+  }
+
+  #list,
+  #remove,
+  #form,
+  #about {
+    padding: 1.5rem;
+  }
+}
+
+/* === Clases de utilidad === */
+.hidden {
+  display: none !important;
+}
+
+.error {
+  color: var(--accent-tertiary); /* Rojo coral */
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.book-id-container{
+  display: none;
+}
