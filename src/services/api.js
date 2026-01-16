@@ -1,52 +1,72 @@
 import axios from 'axios'
 
-// 1. Configuración general del cliente Axios
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3000', // Asegúrate de que este puerto es correcto
-  withCredentials: false, // Cambiar a true si usas cookies/sesiones
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json'
   }
 })
 
-// 2. Definición de los repositorios para cada tabla
-
-// TABLA 1: USUARIOS (Ejemplo de las "anteriores")
-const users = {
-  getAll: () => apiClient.get('/users'),
-  getOne: (id) => apiClient.get(`/users/${id}`),
-  create: (item) => apiClient.post('/users', item),
-  modify: (item) => apiClient.put(`/users/${item.id}`, item),
-  delete: (id) => apiClient.delete(`/users/${id}`),
-  // Método personalizado específico para usuarios
-  changePassword: (id, newPass) => apiClient.patch(`/users/${id}`, { password: newPass })
-}
-
-// TABLA 2: PRODUCTOS
-const books = {
-  getAll: () => apiClient.get('/books'),
-  getOne: (id) => apiClient.get(`/books/${id}`),
-  create: (item) => apiClient.post('/books', item),
-  modify: (item) => apiClient.put(`/books/${item.id}`, item),
-  delete: (id) => apiClient.delete(`/books/${id}`),
-  updateStock: (item) => apiClient.patch(`/books/${item.id}`, { stock: item.stock })
-}
-
-// TABLA 3: PEDIDOS
-const orders = {
-  getAll: () => apiClient.get('/orders'),
-  getOne: (id) => apiClient.get(`/orders/${id}`),
-  create: (item) => apiClient.post('/orders', item),
-  modify: (item) => apiClient.put(`/orders/${item.id}`, item),
-  delete: (id) => apiClient.delete(`/orders/${id}`),
-  // Ejemplo: cancelar un pedido
-  cancel: (id) => apiClient.patch(`/orders/${id}`, { status: 'cancelled' })
-}
-
-// 3. Exportación unificada
 export default {
-  users,
-  books,
-  orders
+  books: {
+    getDBBooks: async () => {
+      const res = await apiClient.get('/books')
+      return res.data
+    },
+    getDBBook: async (id) => {
+      const res = await apiClient.get(`/books/${id}`)
+      return res.data
+    },
+    addDBBook: async (book) => {
+      const res = await apiClient.post('/books', book)
+      return res.data
+    },
+    removeDBBook: async (id) => {
+      await apiClient.delete(`/books/${id}`)
+      return true
+    },
+    changeDBBook: async (book) => {
+      const res = await apiClient.put(`/books/${book.id}`, book)
+      return res.data
+    },
+    existsDBBook: async (userId, moduleCode) => {
+      const res = await apiClient.get(`/books?userId=${userId}&moduleCode=${moduleCode}`)
+      return Array.isArray(res.data) && res.data.length > 0
+    }
+  },
+
+  modules: {
+    getDBModules: async () => {
+      const res = await apiClient.get('/modules')
+      return res.data
+    }
+  },
+
+  users: {
+    getDBUsers: async () => {
+      const res = await apiClient.get('/users')
+      return res.data
+    },
+    getDBUser: async (id) => {
+      const res = await apiClient.get(`/users/${id}`)
+      return res.data
+    },
+    addDBUser: async (user) => {
+      const res = await apiClient.post('/users', user)
+      return res.data
+    },
+    removeDBUser: async (id) => {
+      await apiClient.delete(`/users/${id}`)
+      return true
+    },
+    changeDBUser: async (user) => {
+      const res = await apiClient.put(`/users/${user.id}`, user)
+      return res.data
+    },
+    changeDBUserPassword: async (id, newPassword) => {
+      const res = await apiClient.patch(`/users/${id}`, { password: newPassword })
+      return res.data
+    }
+  }
 }
