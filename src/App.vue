@@ -1,9 +1,7 @@
 <script setup>
+  import { RouterView } from 'vue-router'
   import AppMenu from './components/AppMenu.vue'
   import AppMessages from './components/AppMessages.vue'
-  import BooksList from './components/BooksList.vue'
-  import BookForm from './components/BookForm.vue'
-  import AppAbout from './components/AppAbout.vue'
   </script>
   
   <template>
@@ -15,12 +13,8 @@
   
     <main>
       <div class="main-container">
-        <BooksList />
-        <hr style="margin: 40px 0; border-color: var(--border-color); opacity: 0.3;">
-        <BookForm />
+        <RouterView />
       </div>
-  
-      <AppAbout />
     </main>
   
     <footer>

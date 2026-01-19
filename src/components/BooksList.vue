@@ -1,11 +1,12 @@
 <script setup>
   import { onMounted, computed } from 'vue'
-  // Importamos los stores por separado
+  import { useRouter } from 'vue-router'
   import { booksStore } from '../stores/books'
   import { modulesStore } from '../stores/modules'
   import BookItem from './BookItem.vue'
   
-  // --- VARIABLES COMPUTED (Para los totales) ---
+  const router = useRouter()
+  
   const totalBooks = computed(() => booksStore.books.length)
   
   const totalPrice = computed(() => {
@@ -15,10 +16,13 @@
   })
   
   onMounted(() => {
-    // Cada store se encarga de cargar sus datos
     booksStore.fetchBooks()
     modulesStore.fetchModules()
   })
+  
+  const handleEdit = (id) => {
+    router.push({ name: 'edit-book', params: { id } })
+  }
   </script>
   
   <template>
@@ -29,9 +33,15 @@
         <BookItem 
           v-for="book in booksStore.books" 
           :key="book.id" 
-          :book="book" 
-        />
-      </div>
+          :book="book"
+        >
+          <template #actions>
+              <button @click="handleEdit(book.id)">Editar</button>
+              <button @click="booksStore.removeBook(book.id)">Borrar</button>
+          </template>
+        </BookItem>
+        
+        </div>
   
       <div class="totals-container">
         <p>Total de libros listados: <strong>{{ totalBooks }}</strong></p>

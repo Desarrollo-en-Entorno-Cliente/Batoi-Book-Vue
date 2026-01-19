@@ -1,7 +1,11 @@
 <script setup>
-  import { reactive, watch } from 'vue'
+  import { reactive, onMounted, computed, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import { booksStore } from '../stores/books'
   import { modulesStore } from '../stores/modules'
+  
+  const route = useRoute()
+  const router = useRouter()
   
   const emptyForm = {
     moduleCode: '', publisher: '', price: '', pages: '', 
@@ -10,36 +14,79 @@
   
   const formData = reactive({ ...emptyForm })
   
-  // Vigilamos booksStore para saber si editamos
-  watch(() => booksStore.bookToEdit, (newVal) => {
-    if (newVal) {
-      Object.assign(formData, newVal)
+  const isEditing = computed(() => !!route.params.id)
+  
+  const loadBookData = async () => {
+    if (isEditing.value) {
+      const bookId = route.params.id
+      
+      if (booksStore.books.length === 0) {
+        await booksStore.fetchBooks()
+      }
+      
+      const bookFound = booksStore.books.find(b => b.id == bookId)
+      
+      if (bookFound) {
+        formData.moduleCode = bookFound.idModule
+        formData.publisher = bookFound.publisher
+        formData.price = bookFound.price
+        formData.pages = bookFound.pages
+        formData.status = bookFound.status
+        formData.comments = bookFound.comments
+        formData.soldDate = bookFound.soldDate
+      } else {
+        console.error("Libro no encontrado")
+        router.push('/')
+      }
     } else {
       Object.assign(formData, emptyForm)
+      formData.status = 'new'
     }
-  })
-  
-  const submitForm = () => {
-    if (booksStore.bookToEdit) {
-      booksStore.updateBook(booksStore.bookToEdit.id, { ...formData })
-    } else {
-      const newBook = { ...formData, userId: 1 } 
-      booksStore.addBook(newBook)
-    }
-    resetForm()
   }
   
-  const resetForm = () => {
-    booksStore.clearBookToEdit()
-    Object.assign(formData, emptyForm)
-    formData.status = 'new'
+  onMounted(async () => {
+    if (modulesStore.modules.length === 0) {
+      await modulesStore.fetchModules()
+    }
+    await loadBookData()
+  })
+  
+  watch(() => route.params.id, (newId) => {
+      loadBookData()
+  })
+  
+  const submitForm = async () => {
+    if (isEditing.value) {
+      const bookToUpdate = {
+          ...formData,
+          idModule: formData.moduleCode // Aseguramos compatibilidad inversa
+      }
+      await booksStore.updateBook(route.params.id, bookToUpdate)
+    } else {
+      const newBook = { 
+          ...formData, 
+          userId: 1,
+          idModule: formData.moduleCode // Aseguramos compatibilidad inversa
+      } 
+      await booksStore.addBook(newBook)
+    }
+    router.push('/')
+  }
+  
+  const handleReset = () => {
+    if (isEditing.value) {
+      router.push('/add-book')
+    } else {
+      Object.assign(formData, emptyForm)
+      formData.status = 'new'
+    }
   }
   </script>
   
   <template>
-    <div id="form">
+    <div id="form" class="form-container">
       <h2 id="formTitle" style="color:var(--accent-secondary); margin-bottom:1.5rem;">
-        {{ booksStore.bookToEdit ? `Editando Libro ID: ${booksStore.bookToEdit.id}` : 'Añadir Nuevo Libro' }}
+        {{ isEditing ? `Editando Libro ID: ${route.params.id}` : 'Añadir Nuevo Libro' }}
       </h2>
   
       <form id="bookForm" @submit.prevent="submitForm">
@@ -87,11 +134,22 @@
         </div>
   
         <div style="display: flex; gap: 10px;">
-          <button type="submit">{{ booksStore.bookToEdit ? 'Actualizar' : 'Guardar' }}</button>
-          <button type="button" @click="resetForm" style="background:transparent; border: 1px solid var(--text-mid); color: var(--text-mid)">
-            {{ booksStore.bookToEdit ? 'Cancelar' : 'Limpiar' }}
+          <button type="submit">{{ isEditing ? 'Actualizar' : 'Guardar' }}</button>
+          
+          <button type="button" @click="handleReset" style="background:transparent; border: 1px solid var(--text-mid); color: var(--text-mid)">
+            {{ isEditing ? 'Cancelar' : 'Limpiar' }}
           </button>
         </div>
       </form>
     </div>
   </template>
+  
+  <style scoped>
+  .form-container {
+    background-color: var(--bg-card);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-dark);
+    border: 1px solid var(--border-color);
+  }
+  </style>

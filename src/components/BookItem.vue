@@ -1,5 +1,6 @@
 <script setup>
   import { computed } from 'vue'
+  import { useRouter } from 'vue-router'
   import { booksStore } from '../stores/books'
   import { modulesStore } from '../stores/modules'
   
@@ -7,12 +8,18 @@
     book: { type: Object, required: true }
   })
   
+  const router = useRouter()
+  
   const isSold = computed(() => !!props.book.soldDate)
   
   const handleDelete = () => {
     if (confirm(`¿Borrar libro ${props.book.id}?`)) {
       booksStore.removeBook(props.book.id)
     }
+  }
+
+  const handleEdit = () => {
+    router.push(`/edit-book/${props.book.id}`)
   }
 </script>
 
@@ -54,7 +61,7 @@
         :class="{ 'disabled-btn': isSold }"
         :disabled="isSold"
         title="Editar libro" 
-        @click="booksStore.setBookToEdit(book)"
+        @click="handleEdit"
       >
         <span class="material-icons">edit</span>
       </button>
@@ -72,7 +79,6 @@
 </template>
 
 <style scoped>
-/* Estilo para la imagen */
 .cover {
   display: flex;
   justify-content: center;
@@ -81,7 +87,7 @@
 }
 
 .cover img {
-  max-width: 100px; /* Ajusta este valor según el tamaño deseado */
+  max-width: 100px;
   max-height: 140px;
   object-fit: cover;
   border-radius: 4px;

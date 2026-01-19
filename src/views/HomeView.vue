@@ -1,9 +1,7 @@
 <script setup>
-import TheWelcome from '../components/TheWelcome.vue'
-</script>
-
-<template>
-  <main>
-    <TheWelcome />
-  </main>
-</template>
+  import BooksList from '../components/BooksList.vue'
+  </script>
+  
+  <template>
+    <BooksList />
+  </template>
