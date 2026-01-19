@@ -17,7 +17,6 @@ export const booksStore = reactive({
 
   async addBook(book) {
     try {
-      // CORRECCIÓN: Si no hay usuario, usamos el ID 1 por defecto
       const idUser = usersStore.currentUser ? usersStore.currentUser.id : 1
 
       // Verificamos si existe usando el userId calculado
@@ -27,7 +26,6 @@ export const booksStore = reactive({
         return
       }
 
-      // Calcular ID manual
       const ids = this.books.map(b => Number(b.id))
       const maxId = ids.length > 0 ? Math.max(...ids) : 0
       const nextId = maxId + 1
@@ -35,7 +33,6 @@ export const booksStore = reactive({
       const newBook = { 
         ...book, 
         id: nextId.toString(),
-        // Normalizamos nombres para coincidir con batoibooks.json
         idUser: idUser,
         idModule: book.moduleCode
       }
@@ -52,7 +49,6 @@ export const booksStore = reactive({
   async updateBook(id, updatedData) {
     try {
       const currentBook = this.books.find(b => b.id === id)
-      // Aseguramos que idModule se actualiza si cambia moduleCode
       if(updatedData.moduleCode) updatedData.idModule = updatedData.moduleCode
       
       const bookToUpdate = { ...currentBook, ...updatedData }
@@ -86,8 +82,6 @@ export const booksStore = reactive({
       messagesStore.addMessage('No se puede editar un libro vendido', 'error')
       return
     }
-    // Permitir editar si es el usuario dueño O si es el usuario por defecto (1)
-    // Comprobamos tanto idUser (BD) como userId (Store)
     const bookOwnerId = book.idUser
     
     if (usersStore.currentUser && bookOwnerId !== usersStore.currentUser.id && bookOwnerId != 1) {

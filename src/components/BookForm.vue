@@ -13,8 +13,14 @@
   }
   
   const formData = reactive({ ...emptyForm })
+  const originalData = reactive({})
   
   const isEditing = computed(() => !!route.params.id)
+  
+  const isModified = computed(() => {
+    if (!isEditing.value) return false
+    return JSON.stringify(formData) !== JSON.stringify(originalData)
+  })
   
   const loadBookData = async () => {
     if (isEditing.value) {
@@ -27,13 +33,15 @@
       const bookFound = booksStore.books.find(b => b.id == bookId)
       
       if (bookFound) {
-        formData.moduleCode = bookFound.idModule
+        formData.moduleCode = bookFound.moduleCode || bookFound.idModule
         formData.publisher = bookFound.publisher
         formData.price = bookFound.price
         formData.pages = bookFound.pages
         formData.status = bookFound.status
         formData.comments = bookFound.comments
         formData.soldDate = bookFound.soldDate
+  
+        Object.assign(originalData, JSON.parse(JSON.stringify(formData)))
       } else {
         console.error("Libro no encontrado")
         router.push('/')
@@ -59,14 +67,14 @@
     if (isEditing.value) {
       const bookToUpdate = {
           ...formData,
-          idModule: formData.moduleCode // Aseguramos compatibilidad inversa
+          idModule: formData.moduleCode
       }
       await booksStore.updateBook(route.params.id, bookToUpdate)
     } else {
       const newBook = { 
           ...formData, 
-          idUser: 1,
-          idModule: formData.moduleCode // Aseguramos compatibilidad inversa
+          userId: 1,
+          idModule: formData.moduleCode
       } 
       await booksStore.addBook(newBook)
     }
@@ -75,12 +83,23 @@
   
   const handleReset = () => {
     if (isEditing.value) {
-      router.push('/add-book')
+      if (isModified.value) {
+        Object.assign(formData, JSON.parse(JSON.stringify(originalData)))
+      } else {
+        router.push('/add-book')
+      }
     } else {
       Object.assign(formData, emptyForm)
       formData.status = 'new'
     }
   }
+  
+  const resetButtonText = computed(() => {
+    if (isEditing.value) {
+      return isModified.value ? 'Volver datos originales' : 'Cancelar'
+    }
+    return 'Limpiar'
+  })
   </script>
   
   <template>
@@ -137,7 +156,7 @@
           <button type="submit">{{ isEditing ? 'Actualizar' : 'Guardar' }}</button>
           
           <button type="button" @click="handleReset" style="background:transparent; border: 1px solid var(--text-mid); color: var(--text-mid)">
-            {{ isEditing ? 'Cancelar' : 'Limpiar' }}
+            {{ resetButtonText }}
           </button>
         </div>
       </form>

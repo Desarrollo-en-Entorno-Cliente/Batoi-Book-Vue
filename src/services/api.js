@@ -30,12 +30,9 @@ export default {
       const res = await apiClient.put(`/books/${book.id}`, book)
       return res.data
     },
-    // CORREGIDO: Busca por idUser/idModule y filtra los vendidos
     existsDBBook: async (idUser, moduleCode) => {
-      // Nota: En tu JSON las propiedades son idUser e idModule
       const res = await apiClient.get(`/books?idUser=${idUser}&idModule=${moduleCode}`)
       const userBooks = res.data
-      // Solo devolvemos true si hay algún libro que NO tenga fecha de venta
       const activeBooks = userBooks.filter(book => !book.soldDate)
       return activeBooks.length > 0
     }
