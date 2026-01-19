@@ -65,7 +65,7 @@
     } else {
       const newBook = { 
           ...formData, 
-          userId: 1,
+          idUser: 1,
           idModule: formData.moduleCode // Aseguramos compatibilidad inversa
       } 
       await booksStore.addBook(newBook)

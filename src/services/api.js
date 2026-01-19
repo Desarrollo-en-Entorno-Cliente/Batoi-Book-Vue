@@ -30,9 +30,14 @@ export default {
       const res = await apiClient.put(`/books/${book.id}`, book)
       return res.data
     },
-    existsDBBook: async (userId, moduleCode) => {
-      const res = await apiClient.get(`/books?userId=${userId}&moduleCode=${moduleCode}`)
-      return Array.isArray(res.data) && res.data.length > 0
+    // CORREGIDO: Busca por idUser/idModule y filtra los vendidos
+    existsDBBook: async (idUser, moduleCode) => {
+      // Nota: En tu JSON las propiedades son idUser e idModule
+      const res = await apiClient.get(`/books?idUser=${idUser}&idModule=${moduleCode}`)
+      const userBooks = res.data
+      // Solo devolvemos true si hay algún libro que NO tenga fecha de venta
+      const activeBooks = userBooks.filter(book => !book.soldDate)
+      return activeBooks.length > 0
     }
   },
 
@@ -68,5 +73,20 @@ export default {
       const res = await apiClient.patch(`/users/${id}`, { password: newPassword })
       return res.data
     }
+  },
+
+  async buyBooks(cart, totalAmount) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const totalString = totalAmount.toString()
+        const firstDigit = parseInt(totalString.charAt(0))
+
+        if (firstDigit < 5) {
+          reject(new Error('La transacción ha fallado'))
+        } else {
+          resolve({ success: true, message: 'Compra realizada con éxito' })
+        }
+      }, 500)
+    })
   }
 }

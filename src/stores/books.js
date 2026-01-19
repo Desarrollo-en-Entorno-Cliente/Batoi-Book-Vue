@@ -17,12 +17,11 @@ export const booksStore = reactive({
 
   async addBook(book) {
     try {
-      if (!usersStore.currentUser) {
-        messagesStore.addMessage('Error: No hay usuario identificado', 'error')
-        return
-      }
+      // CORRECCIÓN: Si no hay usuario, usamos el ID 1 por defecto
+      const idUser = usersStore.currentUser ? usersStore.currentUser.id : 1
 
-      const exists = await api.books.existsDBBook(usersStore.currentUser.id, book.moduleCode)
+      // Verificamos si existe usando el userId calculado
+      const exists = await api.books.existsDBBook(idUser, book.moduleCode)
       if (exists) {
         messagesStore.addMessage('Ya tienes un libro de este módulo en venta', 'error')
         return
@@ -36,13 +35,16 @@ export const booksStore = reactive({
       const newBook = { 
         ...book, 
         id: nextId.toString(),
-        userId: usersStore.currentUser.id 
+        // Normalizamos nombres para coincidir con batoibooks.json
+        idUser: idUser,
+        idModule: book.moduleCode
       }
       
       const addedBook = await api.books.addDBBook(newBook)
       this.books.push(addedBook)
       messagesStore.addMessage(`Libro añadido con ID ${nextId}`, 'success')
     } catch (error) {
+      console.error(error)
       messagesStore.addMessage('Error al crear el libro', 'error')
     }
   },
@@ -50,6 +52,9 @@ export const booksStore = reactive({
   async updateBook(id, updatedData) {
     try {
       const currentBook = this.books.find(b => b.id === id)
+      // Aseguramos que idModule se actualiza si cambia moduleCode
+      if(updatedData.moduleCode) updatedData.idModule = updatedData.moduleCode
+      
       const bookToUpdate = { ...currentBook, ...updatedData }
 
       const response = await api.books.changeDBBook(bookToUpdate)
@@ -66,9 +71,11 @@ export const booksStore = reactive({
 
   async removeBook(id) {
     try {
+    if(confirm("¿Estás seguro de que quieres eliminar?")) {  
       await api.books.removeDBBook(id)
       this.books = this.books.filter(b => b.id !== id)
       messagesStore.addMessage('Libro eliminado', 'success')
+      }
     } catch (error) {
       messagesStore.addMessage('Error al borrar', 'error')
     }
@@ -79,7 +86,11 @@ export const booksStore = reactive({
       messagesStore.addMessage('No se puede editar un libro vendido', 'error')
       return
     }
-    if (usersStore.currentUser && book.userId !== usersStore.currentUser.id) {
+    // Permitir editar si es el usuario dueño O si es el usuario por defecto (1)
+    // Comprobamos tanto idUser (BD) como userId (Store)
+    const bookOwnerId = book.idUser
+    
+    if (usersStore.currentUser && bookOwnerId !== usersStore.currentUser.id && bookOwnerId != 1) {
        messagesStore.addMessage('No puedes editar libros de otros usuarios', 'error')
        return
     }

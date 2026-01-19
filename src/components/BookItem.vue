@@ -30,7 +30,12 @@
     </div>
     
     <div class="details">
-      <h3>{{ modulesStore.getModuleName(book.moduleCode) }} ({{ book.id }})</h3>
+      <h3>Libro ID: {{ book.id }}</h3>
+      
+      <h4 style="color: var(--accent-primary);">
+        {{ modulesStore.getModuleName(book.moduleCode || book.idModule) }}
+      </h4>
+
       <h4>{{ book.publisher }}</h4>
       <p>{{ book.pages }} páginas</p>
       <p>Estado: {{ book.status }}</p>
@@ -47,33 +52,7 @@
     </div>
     
     <div class="card-actions">
-      <button 
-        class="icon-button" 
-        :class="{ 'disabled-btn': isSold }"
-        :disabled="isSold"
-        title="Añadir al carrito"
-      >
-        <span class="material-icons">add_shopping_cart</span>
-      </button>
-      
-      <button 
-        class="icon-button" 
-        :class="{ 'disabled-btn': isSold }"
-        :disabled="isSold"
-        title="Editar libro" 
-        @click="handleEdit"
-      >
-        <span class="material-icons">edit</span>
-      </button>
-      
-      <button 
-        class="icon-button" 
-        title="Eliminar libro" 
-        data-action="delete"
-        @click="handleDelete"
-      >
-        <span class="material-icons">delete</span>
-      </button>
+      <slot></slot>
     </div>
   </div>
 </template>

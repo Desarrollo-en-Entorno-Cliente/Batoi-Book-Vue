@@ -3,6 +3,7 @@
   import { useRouter } from 'vue-router'
   import { booksStore } from '../stores/books'
   import { modulesStore } from '../stores/modules'
+  import { cartStore } from '../stores/cart'
   import BookItem from './BookItem.vue'
   
   const router = useRouter()
@@ -35,13 +36,35 @@
           :key="book.id" 
           :book="book"
         >
-          <template #actions>
-              <button @click="handleEdit(book.id)">Editar</button>
-              <button @click="booksStore.removeBook(book.id)">Borrar</button>
-          </template>
+          <button 
+            class="icon-button"
+            title="Añadir al carrito"
+            @click="cartStore.addBook(book)"
+            :disabled="!!book.soldDate || cartStore.hasBook(book.id)"
+            :class="{ 'disabled-btn': !!book.soldDate || cartStore.hasBook(book.id) }"
+          >
+            <span class="material-icons">add_shopping_cart</span>
+          </button>
+
+          <button 
+            class="icon-button"
+            title="Editar libro" 
+            @click="handleEdit(book.id)"
+            :disabled="!!book.soldDate"
+            :class="{ 'disabled-btn': !!book.soldDate }"
+          >
+            <span class="material-icons">edit</span>
+          </button>
+
+          <button 
+            class="icon-button"
+            title="Eliminar libro" 
+            @click="booksStore.removeBook(book.id)"
+          >
+            <span class="material-icons">delete</span>
+          </button>
         </BookItem>
-        
-        </div>
+      </div>
   
       <div class="totals-container">
         <p>Total de libros listados: <strong>{{ totalBooks }}</strong></p>
@@ -67,4 +90,5 @@
     font-size: 1.3rem;
     margin-left: 0.5rem;
   }
+  .disabled-btn { opacity: 0.3; cursor: not-allowed; }
   </style>
