@@ -4,6 +4,7 @@ import AboutView from '../views/AboutView.vue'
 import BookForm from '../components/BookForm.vue'
 import BooksCart from '../components/BooksCart.vue'
 import AppAbout from '@/components/AppAbout.vue'
+import BooksList from '@/components/BooksList.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,7 +12,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: BooksList,
     },
     {
       path: '/about',
