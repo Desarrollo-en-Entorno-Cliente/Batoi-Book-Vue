@@ -28,7 +28,6 @@ export const booksStore = reactive({
         return
       }
 
-      // Calcular ID manual
       const ids = this.books.map(b => Number(b.id))
       const maxId = ids.length > 0 ? Math.max(...ids) : 0
       const nextId = maxId + 1

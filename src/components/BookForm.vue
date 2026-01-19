@@ -59,14 +59,14 @@
     if (isEditing.value) {
       const bookToUpdate = {
           ...formData,
-          idModule: formData.moduleCode // Aseguramos compatibilidad inversa
+          idModule: formData.moduleCode
       }
       await booksStore.updateBook(route.params.id, bookToUpdate)
     } else {
       const newBook = { 
           ...formData, 
           userId: 1,
-          idModule: formData.moduleCode // Aseguramos compatibilidad inversa
+          idModule: formData.moduleCode
       } 
       await booksStore.addBook(newBook)
     }
