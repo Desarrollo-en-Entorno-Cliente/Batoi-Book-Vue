@@ -1,25 +1,32 @@
 <script setup>
 import { computed } from 'vue'
 import { useModulesStore } from '../stores/modules'
+import { useBooksStore } from '../stores/books'
 
 const props = defineProps({
   book: { type: Object, required: true }
 })
 
 const modulesStore = useModulesStore()
+const booksStore = useBooksStore()
 
 const isSold = computed(() => !!props.book.soldDate)
-// Buscamos el nombre del módulo usando el store de módulos
+
+const moduleCode = computed(() => props.book.moduleCode || props.book.idModule)
+
 const moduleName = computed(() => {
-  const code = props.book.moduleCode || props.book.idModule
-  return modulesStore.getModuleName(code)
+  return modulesStore.getModuleName(moduleCode.value)
+})
+
+const bookImage = computed(() => {
+  return booksStore.getCoverPath(moduleCode.value)
 })
 </script>
 
 <template>
   <div class="card" :class="{ 'sold-item': isSold }">
     <div class="cover">
-      <img :src="book.photo ? `/img/${book.photo}` : '/img/default.jpg'" alt="Portada" />
+      <img :src="bookImage" :alt="`Portada módulo ${moduleCode}`" />
     </div>
     <div class="details">
       <h3>ID: {{ book.id }}</h3>
@@ -37,23 +44,20 @@ const moduleName = computed(() => {
   </div>
 </template>
 
-
 <style scoped>
 .cover {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 10px;
+  height: 160px;
 }
-
 .cover img {
   max-width: 100px;
   max-height: 140px;
   object-fit: cover;
   border-radius: 4px;
 }
-
 .sold-item { opacity: 0.75; border: 1px dashed var(--accent-tertiary); background-color: rgba(0, 0, 0, 0.2); }
-.sold-text { color: var(--accent-tertiary); font-weight: bold; }
-.disabled-btn { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+.line-through { text-decoration: line-through; opacity: 0.6; }
 </style>

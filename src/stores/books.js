@@ -11,6 +11,26 @@ export const useBooksStore = defineStore('books', () => {
   const books = ref([])
   const bookToEdit = ref(null)
 
+  function getModuleImage(moduleCode) {
+    const map = {
+      '0021': '9788448635015.jpg',
+      '0374': '9788448626648.jpg',
+      '0375': '9788448626655.jpg',
+      '0376': '9788448626662.jpg',
+      '0378': '9788448626686.jpg',
+      '0380': '9788448635015.jpg',
+      '0612': '9788448632663.jpg',
+      '1371': '9788448638719_1.jpg',
+      '1349': '9788448638900.jpg',
+      '1353': '9788448638986.jpg'
+    };
+    return map[moduleCode] || '/img/logoBatoi.png' || 'logoBatoi.png';
+  }
+
+  function getCoverPath(moduleCode) {
+    return `/img/${getModuleImage(moduleCode)}`
+  }
+
   async function fetchBooks() {
     try {
       books.value = await api.books.getDBBooks()
@@ -96,5 +116,15 @@ export const useBooksStore = defineStore('books', () => {
     bookToEdit.value = null
   }
 
-  return { books, bookToEdit, fetchBooks, addBook, updateBook, removeBook, setBookToEdit, clearBookToEdit }
+  return { 
+    books, 
+    bookToEdit, 
+    fetchBooks, 
+    addBook, 
+    updateBook, 
+    removeBook, 
+    setBookToEdit, 
+    clearBookToEdit,
+    getCoverPath
+  }
 })

@@ -12,7 +12,6 @@ export const useModulesStore = defineStore('modules', () => {
       modules.value = await api.modules.getDBModules()
     } catch (error) {
       messagesStore.addMessage('Error cargando módulos', 'error')
-      // Fallback por si falla la API
       modules.value = [
         { code: '5021', cliteral: 'Desarrollo Web Entorno Cliente' },
         { code: '5025', cliteral: 'Despliegue de Aplicaciones Web' }
