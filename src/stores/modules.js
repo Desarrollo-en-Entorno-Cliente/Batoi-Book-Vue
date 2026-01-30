@@ -1,24 +1,29 @@
-import { reactive } from 'vue'
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import api from '../services/api'
-import { messagesStore } from './messages'
+import { useMessagesStore } from './messages'
 
-export const modulesStore = reactive({
-  modules: [],
+export const useModulesStore = defineStore('modules', () => {
+  const messagesStore = useMessagesStore()
+  const modules = ref([])
 
-  async fetchModules() {
+  async function fetchModules() {
     try {
-      this.modules = await api.modules.getDBModules()
+      modules.value = await api.modules.getDBModules()
     } catch (error) {
       messagesStore.addMessage('Error cargando módulos', 'error')
-      this.modules = [
+      // Fallback por si falla la API
+      modules.value = [
         { code: '5021', cliteral: 'Desarrollo Web Entorno Cliente' },
         { code: '5025', cliteral: 'Despliegue de Aplicaciones Web' }
       ]
     }
-  },
+  }
 
-  getModuleName(code) {
-    const mod = this.modules.find(m => m.code === code)
+  function getModuleName(code) {
+    const mod = modules.value.find(m => m.code === code)
     return mod ? mod.cliteral : code
   }
+
+  return { modules, fetchModules, getModuleName }
 })

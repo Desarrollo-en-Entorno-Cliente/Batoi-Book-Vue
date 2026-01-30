@@ -1,61 +1,42 @@
 <script setup>
-  import { computed } from 'vue'
-  import { useRouter } from 'vue-router'
-  import { booksStore } from '../stores/books'
-  import { modulesStore } from '../stores/modules'
-  
-  const props = defineProps({
-    book: { type: Object, required: true }
-  })
-  
-  const router = useRouter()
-  
-  const isSold = computed(() => !!props.book.soldDate)
-  
-  const handleDelete = () => {
-    if (confirm(`¿Borrar libro ${props.book.id}?`)) {
-      booksStore.removeBook(props.book.id)
-    }
-  }
+import { computed } from 'vue'
+import { useModulesStore } from '../stores/modules'
 
-  const handleEdit = () => {
-    router.push(`/edit-book/${props.book.id}`)
-  }
+const props = defineProps({
+  book: { type: Object, required: true }
+})
+
+const modulesStore = useModulesStore()
+
+const isSold = computed(() => !!props.book.soldDate)
+// Buscamos el nombre del módulo usando el store de módulos
+const moduleName = computed(() => {
+  const code = props.book.moduleCode || props.book.idModule
+  return modulesStore.getModuleName(code)
+})
 </script>
 
 <template>
-  <div class="card" :data-id="book.id" :class="{ 'sold-item': isSold }">
-    <div class="cover" v-if="book.photo">
-      <img :src="'/img/' + book.photo" :alt="'Portada del libro ' + book.id" />
+  <div class="card" :class="{ 'sold-item': isSold }">
+    <div class="cover">
+      <img :src="book.photo ? `/img/${book.photo}` : '/img/default.jpg'" alt="Portada" />
     </div>
-    
     <div class="details">
-      <h3>Libro ID: {{ book.id }}</h3>
-      
-      <h4 style="color: var(--accent-primary);">
-        {{ modulesStore.getModuleName(book.moduleCode || book.idModule) }}
-      </h4>
-
-      <h4>{{ book.publisher }}</h4>
-      <p>{{ book.pages }} páginas</p>
-      <p>Estado: {{ book.status }}</p>
-      
-      <p v-if="isSold" class="sold-text">Vendido el {{ book.soldDate }}</p>
-      <p v-else>En venta</p>
-      
-      <p><i>{{ book.comments }}</i></p>
-      
-      <h4 v-if="isSold" style="text-decoration: line-through; color: var(--accent-tertiary);">
+      <h3>ID: {{ book.id }}</h3>
+      <h4 class="module-title">{{ moduleName }}</h4>
+      <p><strong>Editorial:</strong> {{ book.publisher }}</p>
+      <p><strong>Estado:</strong> {{ book.status }} | {{ book.pages }} págs.</p>
+      <p v-if="isSold" class="sold-tag">Vendido el {{ book.soldDate }}</p>
+      <h4 class="price-tag" :class="{ 'line-through': isSold }">
         {{ parseFloat(book.price).toFixed(2) }} €
       </h4>
-      <h4 v-else>{{ parseFloat(book.price).toFixed(2) }} €</h4>
     </div>
-    
     <div class="card-actions">
       <slot></slot>
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .cover {

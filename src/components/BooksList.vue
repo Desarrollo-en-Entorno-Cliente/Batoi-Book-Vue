@@ -1,77 +1,66 @@
 <script setup>
-  import { onMounted, computed } from 'vue'
-  import { useRouter } from 'vue-router'
-  import { booksStore } from '../stores/books'
-  import { modulesStore } from '../stores/modules'
-  import { cartStore } from '../stores/cart'
-  import BookItem from './BookItem.vue'
-  
-  const router = useRouter()
-  
-  const totalBooks = computed(() => booksStore.books.length)
-  
-  const totalPrice = computed(() => {
-    return booksStore.books.reduce((acc, book) => {
-      return acc + parseFloat(book.price || 0)
-    }, 0).toFixed(2)
-  })
-  
-  onMounted(() => {
-    booksStore.fetchBooks()
-    modulesStore.fetchModules()
-  })
-  
-  const handleEdit = (id) => {
-    router.push({ name: 'edit-book', params: { id } })
-  }
-  </script>
-  
-  <template>
-    <div id="list-container">
-      <h2>Listado de libros</h2>
-      
-      <div id="list">
-        <BookItem 
-          v-for="book in booksStore.books" 
-          :key="book.id" 
-          :book="book"
+import { onMounted, computed } from 'vue'
+import { useBooksStore } from '../stores/books'
+import { useModulesStore } from '../stores/modules'
+import { useCartStore } from '../stores/cart'
+import BookItem from './BookItem.vue'
+
+const booksStore = useBooksStore()
+const modulesStore = useModulesStore()
+const cartStore = useCartStore()
+
+onMounted(async () => {
+  // Cargamos datos necesarios al montar el componente
+  await modulesStore.fetchModules()
+  await booksStore.fetchBooks()
+})
+
+const totalBooks = computed(() => booksStore.books.length)
+const totalPrice = computed(() => {
+  return booksStore.books.reduce((acc, book) => acc + parseFloat(book.price || 0), 0).toFixed(2)
+})
+</script>
+
+<template>
+  <div id="list-container">
+    <h2>Listado de libros</h2>
+    
+    <div id="list" v-if="booksStore.books.length > 0">
+      <BookItem v-for="book in booksStore.books" :key="book.id" :book="book">
+        <button 
+          class="icon-button"
+          title="Añadir al carrito"
+          @click="cartStore.addBook(book)"
+          :disabled="!!book.soldDate || cartStore.hasBook(book.id)"
         >
-          <button 
-            class="icon-button"
-            title="Añadir al carrito"
-            @click="cartStore.addBook(book)"
-            :disabled="!!book.soldDate || cartStore.hasBook(book.id)"
-            :class="{ 'disabled-btn': !!book.soldDate || cartStore.hasBook(book.id) }"
-          >
-            <span class="material-icons">add_shopping_cart</span>
-          </button>
+          <span class="material-icons">add_shopping_cart</span>
+        </button>
 
-          <button 
-            class="icon-button"
-            title="Editar libro" 
-            @click="handleEdit(book.id)"
-            :disabled="!!book.soldDate"
-            :class="{ 'disabled-btn': !!book.soldDate }"
-          >
-            <span class="material-icons">edit</span>
-          </button>
+        <router-link 
+          :to="{ name: 'edit-book', params: { id: book.id } }" 
+          class="icon-button" 
+          v-if="!book.soldDate"
+          title="Editar libro"
+        >
+          <span class="material-icons">edit</span>
+        </router-link>
 
-          <button 
-            class="icon-button"
-            title="Eliminar libro" 
-            @click="booksStore.removeBook(book.id)"
-          >
-            <span class="material-icons">delete</span>
-          </button>
-        </BookItem>
-      </div>
-  
-      <div class="totals-container">
-        <p>Total de libros listados: <strong>{{ totalBooks }}</strong></p>
-        <p>Importe total: <strong>{{ totalPrice }} €</strong></p>
-      </div>
+        <button 
+          class="icon-button" 
+          title="Eliminar libro"
+          @click="booksStore.removeBook(book.id)"
+        >
+          <span class="material-icons">delete</span>
+        </button>
+      </BookItem>
     </div>
-  </template>
+    <div v-else class="loading">Cargando libros...</div>
+
+    <div class="totals-container" v-if="totalBooks > 0">
+      <p>Total libros: <strong>{{ totalBooks }}</strong> | Importe: <strong>{{ totalPrice }} €</strong></p>
+    </div>
+  </div>
+</template>
   
   <style scoped>
   .totals-container {

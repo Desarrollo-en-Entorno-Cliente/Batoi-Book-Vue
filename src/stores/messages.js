@@ -1,18 +1,21 @@
-import { reactive } from 'vue'
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
-export const messagesStore = reactive({
-  messages: [],
+export const useMessagesStore = defineStore('messages', () => {
+  const messages = ref([])
 
-  addMessage(text, type = 'info') {
+  function addMessage(text, type = 'info') {
     const id = Date.now()
-    this.messages.push({ id, text, type })
+    messages.value.push({ id, text, type })
     
     setTimeout(() => {
-      this.deleteMessage(id)
+      deleteMessage(id)
     }, 5000)
-  },
-
-  deleteMessage(id) {
-    this.messages = this.messages.filter(m => m.id !== id)
   }
+
+  function deleteMessage(id) {
+    messages.value = messages.value.filter(m => m.id !== id)
+  }
+
+  return { messages, addMessage, deleteMessage }
 })

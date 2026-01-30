@@ -1,32 +1,35 @@
-import { reactive } from 'vue'
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import api from '../services/api'
-import { messagesStore } from './messages'
-import { usersStore } from './users'
+import { useMessagesStore } from './messages'
+import { useUsersStore } from './users'
 
-export const booksStore = reactive({
-  books: [],
-  bookToEdit: null,
+export const useBooksStore = defineStore('books', () => {
+  const messagesStore = useMessagesStore()
+  const usersStore = useUsersStore()
+  
+  const books = ref([])
+  const bookToEdit = ref(null)
 
-  async fetchBooks() {
+  async function fetchBooks() {
     try {
-      this.books = await api.books.getDBBooks()
+      books.value = await api.books.getDBBooks()
     } catch (error) {
       messagesStore.addMessage('Error al cargar libros: ' + error.message, 'error')
     }
-  },
+  }
 
-  async addBook(book) {
+  async function addBook(book) {
     try {
       const idUser = usersStore.currentUser ? usersStore.currentUser.id : 1
-
-      // Verificamos si existe usando el userId calculado
       const exists = await api.books.existsDBBook(idUser, book.moduleCode)
+      
       if (exists) {
         messagesStore.addMessage('Ya tienes un libro de este módulo en venta', 'error')
         return
       }
 
-      const ids = this.books.map(b => Number(b.id))
+      const ids = books.value.map(b => Number(b.id))
       const maxId = ids.length > 0 ? Math.max(...ids) : 0
       const nextId = maxId + 1
 
@@ -38,62 +41,60 @@ export const booksStore = reactive({
       }
       
       const addedBook = await api.books.addDBBook(newBook)
-      this.books.push(addedBook)
+      books.value.push(addedBook)
       messagesStore.addMessage(`Libro añadido con ID ${nextId}`, 'success')
     } catch (error) {
-      console.error(error)
       messagesStore.addMessage('Error al crear el libro', 'error')
     }
-  },
+  }
 
-  async updateBook(id, updatedData) {
+  async function updateBook(id, updatedData) {
     try {
-      const currentBook = this.books.find(b => b.id === id)
+      const currentBook = books.value.find(b => b.id === id)
       if(updatedData.moduleCode) updatedData.idModule = updatedData.moduleCode
       
       const bookToUpdate = { ...currentBook, ...updatedData }
-
       const response = await api.books.changeDBBook(bookToUpdate)
       
-      const index = this.books.findIndex(b => b.id === id)
-      if (index !== -1) this.books[index] = response
+      const index = books.value.findIndex(b => b.id === id)
+      if (index !== -1) books.value[index] = response
       
       messagesStore.addMessage('Libro actualizado correctamente', 'success')
-      this.clearBookToEdit()
+      clearBookToEdit()
     } catch (error) {
       messagesStore.addMessage('Error al actualizar', 'error')
     }
-  },
+  }
 
-  async removeBook(id) {
-    try {
+  async function removeBook(id) {
     if(confirm("¿Estás seguro de que quieres eliminar?")) {  
-      await api.books.removeDBBook(id)
-      this.books = this.books.filter(b => b.id !== id)
-      messagesStore.addMessage('Libro eliminado', 'success')
+      try {
+        await api.books.removeDBBook(id)
+        books.value = books.value.filter(b => b.id !== id)
+        messagesStore.addMessage('Libro eliminado', 'success')
+      } catch (error) {
+        messagesStore.addMessage('Error al borrar', 'error')
       }
-    } catch (error) {
-      messagesStore.addMessage('Error al borrar', 'error')
     }
-  },
+  }
 
-  setBookToEdit(book) {
+  function setBookToEdit(book) {
     if (book.soldDate) {
       messagesStore.addMessage('No se puede editar un libro vendido', 'error')
       return
     }
     const bookOwnerId = book.idUser
-    
     if (usersStore.currentUser && bookOwnerId !== usersStore.currentUser.id && bookOwnerId != 1) {
        messagesStore.addMessage('No puedes editar libros de otros usuarios', 'error')
        return
     }
-
-    this.bookToEdit = { ...book }
+    bookToEdit.value = { ...book }
     document.getElementById('form')?.scrollIntoView({ behavior: 'smooth' })
-  },
-
-  clearBookToEdit() {
-    this.bookToEdit = null
   }
+
+  function clearBookToEdit() {
+    bookToEdit.value = null
+  }
+
+  return { books, bookToEdit, fetchBooks, addBook, updateBook, removeBook, setBookToEdit, clearBookToEdit }
 })

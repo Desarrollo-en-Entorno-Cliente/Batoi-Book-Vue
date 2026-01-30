@@ -1,58 +1,56 @@
-import { reactive, computed, watch } from 'vue'
-import { messagesStore } from './messages'
+import { defineStore } from 'pinia'
+import { ref, computed, watch } from 'vue'
+import { useMessagesStore } from './messages'
 import api from '../services/api'
 
-const storedCart = JSON.parse(localStorage.getItem('batoi_cart')) || []
+export const useCartStore = defineStore('cart', () => {
+  const messagesStore = useMessagesStore()
+  const cart = ref(JSON.parse(localStorage.getItem('batoi_cart')) || [])
 
-export const cartStore = reactive({
-  cart: storedCart,
-
-  totalItems: computed(() => cartStore.cart.length),
+  const totalItems = computed(() => cart.value.length)
   
-  totalPrice: computed(() => {
-    return cartStore.cart.reduce((total, book) => total + parseFloat(book.price), 0).toFixed(2)
-  }),
+  const totalPrice = computed(() => {
+    return cart.value.reduce((total, book) => total + parseFloat(book.price), 0).toFixed(2)
+  })
 
-  addBook(book) {
-    if (this.cart.find(item => item.id === book.id)) {
+  function addBook(book) {
+    if (cart.value.find(item => item.id === book.id)) {
       messagesStore.addMessage('El libro ya está en el carrito', 'warning')
       return
     }
-    this.cart.push(book)
+    cart.value.push(book)
     messagesStore.addMessage('Libro añadido al carrito', 'success')
-  },
+  }
 
-  removeBook(id) {
-    const index = this.cart.findIndex(item => item.id === id)
+  function removeBook(id) {
+    const index = cart.value.findIndex(item => item.id === id)
     if (index !== -1) {
-      this.cart.splice(index, 1)
+      cart.value.splice(index, 1)
       messagesStore.addMessage('Libro eliminado del carrito', 'info')
     }
-  },
+  }
 
-  clearCart() {
-    this.cart = []
-  },
+  function clearCart() {
+    cart.value = []
+  }
 
-  hasBook(id) {
-    return this.cart.some(item => item.id === id)
-  },
+  function hasBook(id) {
+    return cart.value.some(item => item.id === id)
+  }
 
-  async checkout() {
+  async function checkout() {
     try {
-      const response = await api.buyBooks(this.cart, this.totalPrice)
+      const response = await api.buyBooks(cart.value, totalPrice.value)
       messagesStore.addMessage(response.message, 'success')
-      this.clearCart()
+      clearCart()
     } catch (error) {
       messagesStore.addMessage(error.message, 'error')
     }
   }
-})
 
-watch(
-  () => cartStore.cart,
-  (newCart) => {
+  watch(cart, (newCart) => {
     localStorage.setItem('batoi_cart', JSON.stringify(newCart))
-  },
-  { deep: true }
-)
+  }, { deep: true })
+
+  return { cart, totalItems, totalPrice, addBook, removeBook, clearCart, hasBook, checkout }
+})
