@@ -1,27 +1,60 @@
 <script setup>
-import { reactive, onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBooksStore } from '../stores/books'
 import { useModulesStore } from '../stores/modules'
+import { useForm } from 'vee-validate'
+import * as yup from 'yup'
 
 const route = useRoute()
 const router = useRouter()
 const booksStore = useBooksStore()
 const modulesStore = useModulesStore()
 
-const emptyForm = {
-  moduleCode: '', publisher: '', price: '', pages: '', 
-  status: 'new', comments: '', soldDate: ''
-}
+const validationSchema = yup.object({
+  moduleCode: yup.string()
+    .required('El módulo es obligatorio'),
+  publisher: yup.string()
+    .required('La editorial es obligatoria'),
+  price: yup.number()
+    .typeError('El precio debe ser un número')
+    .required('El precio es obligatorio')
+    .min(0, 'El precio debe ser mayor o igual que 0'),
+  pages: yup.number()
+    .typeError('Las páginas deben ser un número')
+    .required('El número de páginas es obligatorio')
+    .integer('El número de páginas debe ser un entero')
+    .min(0, 'Las páginas deben ser mayor o igual que 0'),
+  status: yup.string()
+    .required('El estado es obligatorio'),
+  comments: yup.string()
+    .nullable(),
+  soldDate: yup.string()
+    .nullable()
+})
 
-const formData = reactive({ ...emptyForm })
-const originalData = reactive({})
+const { handleSubmit, errors, setValues, defineField, resetForm, values } = useForm({
+  validationSchema,
+  initialValues: {
+    moduleCode: '', 
+    publisher: '', 
+    price: '', 
+    pages: '', 
+    status: 'new', 
+    comments: '', 
+    soldDate: ''
+  }
+})
+
+// Definición de los campos para v-model (con configuración para validar al cambiar)
+const [moduleCode] = defineField('moduleCode')
+const [publisher] = defineField('publisher')
+const [price] = defineField('price')
+const [pages] = defineField('pages')
+const [status] = defineField('status')
+const [comments] = defineField('comments') // No se valida, pero se gestiona
 
 const isEditing = computed(() => !!route.params.id)
-const isModified = computed(() => {
-  if (!isEditing.value) return false
-  return JSON.stringify(formData) !== JSON.stringify(originalData)
-})
 
 const loadBookData = async () => {
   if (isEditing.value) {
@@ -30,19 +63,20 @@ const loadBookData = async () => {
     
     const bookFound = booksStore.books.find(b => b.id == bookId)
     if (bookFound) {
-      formData.moduleCode = bookFound.moduleCode || bookFound.idModule
-      formData.publisher = bookFound.publisher
-      formData.price = bookFound.price
-      formData.pages = bookFound.pages
-      formData.status = bookFound.status
-      formData.comments = bookFound.comments
-      formData.soldDate = bookFound.soldDate
-      Object.assign(originalData, JSON.parse(JSON.stringify(formData)))
+      setValues({
+        moduleCode: bookFound.moduleCode || bookFound.idModule,
+        publisher: bookFound.publisher,
+        price: bookFound.price,
+        pages: bookFound.pages,
+        status: bookFound.status,
+        comments: bookFound.comments || '',
+        soldDate: bookFound.soldDate || ''
+      })
     } else {
       router.push('/')
     }
   } else {
-    Object.assign(formData, emptyForm)
+    resetForm()
   }
 }
 
@@ -53,21 +87,24 @@ onMounted(async () => {
 
 watch(() => route.params.id, () => loadBookData())
 
-const submitForm = async () => {
-  const data = { ...formData, idModule: formData.moduleCode }
+const onSubmit = handleSubmit(async (values) => {
+  const data = { ...values, idModule: values.moduleCode }
+  
+  
   if (isEditing.value) {
     await booksStore.updateBook(route.params.id, data)
   } else {
     await booksStore.addBook(data)
   }
+  
   router.push('/')
-}
+})
 
 const handleReset = () => {
   if (isEditing.value) {
-    isModified.value ? Object.assign(formData, JSON.parse(JSON.stringify(originalData))) : router.push('/')
+    loadBookData()
   } else {
-    Object.assign(formData, emptyForm)
+    resetForm()
   }
 }
 </script>
@@ -75,48 +112,112 @@ const handleReset = () => {
 <template>
   <div id="form" class="form-container">
     <h2>{{ isEditing ? `Editando Libro ID: ${route.params.id}` : 'Añadir Nuevo Libro' }}</h2>
-    <form @submit.prevent="submitForm">
-      <div>
+    
+    <form @submit.prevent="onSubmit">
+      <div class="form-group">
         <label>Módulo</label>
-        <select v-model="formData.moduleCode" required>
+        <select v-model="moduleCode" :class="{ 'error-input': errors.moduleCode }">
           <option value="" disabled>- Selecciona un módulo -</option>
           <option v-for="mod in modulesStore.modules" :key="mod.code" :value="mod.code">
             {{ mod.cliteral }}
           </option>
         </select>
+        <span class="error-msg">{{ errors.moduleCode }}</span>
       </div>
-      <div>
+
+      <div class="form-group">
         <label>Editorial</label>
-        <input v-model="formData.publisher" type="text" required minlength="3" />
+        <input v-model="publisher" type="text" :class="{ 'error-input': errors.publisher }" />
+        <span class="error-msg">{{ errors.publisher }}</span>
       </div>
-      <div>
+
+      <div class="form-group">
         <label>Precio</label>
-        <input v-model="formData.price" type="number" required step="0.01" />
+        <input v-model="price" type="number" step="0.01" :class="{ 'error-input': errors.price }" />
+        <span class="error-msg">{{ errors.price }}</span>
       </div>
-      <div>
+
+      <div class="form-group">
         <label>Páginas</label>
-        <input v-model="formData.pages" type="number" required />
+        <input v-model="pages" type="number" :class="{ 'error-input': errors.pages }" />
+        <span class="error-msg">{{ errors.pages }}</span>
       </div>
-      <div>
+
+      <div class="form-group">
         <label>Estado</label>
-        <input v-model="formData.status" type="radio" value="new" /> Nuevo
-        <input v-model="formData.status" type="radio" value="good" /> Bueno
-        <input v-model="formData.status" type="radio" value="bad" /> Malo
+        <div>
+          <label class="radio-label">
+            <input v-model="status" type="radio" value="new" /> Nuevo
+          </label>
+          <label class="radio-label">
+            <input v-model="status" type="radio" value="good" /> Bueno
+          </label>
+          <label class="radio-label">
+            <input v-model="status" type="radio" value="bad" /> Malo
+          </label>
+        </div>
+        <span class="error-msg">{{ errors.status }}</span>
       </div>
+
+      <div class="form-group">
+        <label>Comentarios</label>
+        <textarea v-model="comments"></textarea>
+      </div>
+
       <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button type="submit" class="btn-primary">{{ isEditing ? 'Actualizar' : 'Guardar' }}</button>
-        <button type="button" @click="handleReset" class="btn-danger">Cancelar/Limpiar</button>
+        <button type="submit" class="btn-primary" :disabled="Object.keys(errors).length > 0">
+          {{ isEditing ? 'Actualizar' : 'Guardar' }}
+        </button>
+        <button type="button" @click="handleReset" class="btn-danger">
+          Cancelar/Limpiar
+        </button>
       </div>
     </form>
   </div>
 </template>
-  
-  <style scoped>
-  .form-container {
-    background-color: var(--bg-card);
-    padding: 2rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-dark);
-    border: 1px solid var(--border-color);
-  }
-  </style>
+
+<style scoped>
+.form-container {
+  background-color: var(--bg-card);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-dark);
+  border: 1px solid var(--border-color);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.error-input {
+  border-color: red;
+}
+
+.error-msg {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.radio-label {
+  margin-right: 15px;
+  font-weight: normal;
+}
+</style>
